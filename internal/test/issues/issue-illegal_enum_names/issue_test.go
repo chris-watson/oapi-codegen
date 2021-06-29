@@ -6,7 +6,7 @@ import (
 	"go/token"
 	"testing"
 
-	"github.com/deepmap/oapi-codegen/pkg/codegen"
+	"github.com/chris-watson/oapi-codegen/pkg/codegen"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/stretchr/testify/require"
 )
