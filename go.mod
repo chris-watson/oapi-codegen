@@ -1,4 +1,4 @@
-module github.com/chris-watson/oapi-codegen/v2
+module github.com/chris-watson/oapi-codegen
 
 require (
 	github.com/cyberdelia/templates v0.0.0-20141128023046-ca7fffd4298c
