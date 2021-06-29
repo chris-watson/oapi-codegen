@@ -87,8 +87,8 @@ type HttpRequestDoer interface {
 // Client which conforms to the OpenAPI3 specification for this service.
 type Client struct {
 	// The endpoint of the server conforming to this interface, with scheme,
-	// https://api.chris-watson.com for example. This can contain a path relative
-	// to the server, such as https://api.chris-watson.com/dev-test, and all the
+	// https://api.deepmap.com for example. This can contain a path relative
+	// to the server, such as https://api.deepmap.com/dev-test, and all the
 	// paths in the swagger spec will be appended to the server.
 	Server string
 
@@ -1199,25 +1199,25 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 } // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
