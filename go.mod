@@ -1,8 +1,6 @@
 module github.com/chris-watson/oapi-codegen
 
 
-replace github.com/deepmap/oapi-codegen => /Users/cwatson/go/src/github.com/oapi-codegen
-
 require (
 	github.com/cyberdelia/templates v0.0.0-20141128023046-ca7fffd4298c
 	github.com/getkin/kin-openapi v0.61.0

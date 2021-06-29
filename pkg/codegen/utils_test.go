@@ -142,7 +142,7 @@ func TestRefPathToGoType(t *testing.T) {
 	assert.Equal(t, "FooBar", goType)
 	assert.NoError(t, err, "Expecting no error")
 
-	_, err = RefPathToGoType("http://deepmap.com/doc.json#/components/parameters/foo_bar")
+	_, err = RefPathToGoType("http://chris-watson.com/doc.json#/components/parameters/foo_bar")
 	assert.Errorf(t, err, "Expected an error on URL reference")
 
 	_, err = RefPathToGoType("doc.json#/components/parameters/foo_bar")
@@ -158,8 +158,8 @@ func TestIsWholeDocumentReference(t *testing.T) {
 	assert.Equal(t, false, IsWholeDocumentReference("doc.json#/components/schemas/Foo"))
 	assert.Equal(t, true, IsWholeDocumentReference("doc.json"))
 	assert.Equal(t, true, IsWholeDocumentReference("../doc.json"))
-	assert.Equal(t, false, IsWholeDocumentReference("http://deepmap.com/doc.json#/components/parameters/foo_bar"))
-	assert.Equal(t, true, IsWholeDocumentReference("http://deepmap.com/doc.json"))
+	assert.Equal(t, false, IsWholeDocumentReference("http://chris-watson.com/doc.json#/components/parameters/foo_bar"))
+	assert.Equal(t, true, IsWholeDocumentReference("http://chris-watson.com/doc.json"))
 }
 
 func TestIsGoTypeReference(t *testing.T) {
@@ -168,8 +168,8 @@ func TestIsGoTypeReference(t *testing.T) {
 	assert.Equal(t, true, IsGoTypeReference("doc.json#/components/schemas/Foo"))
 	assert.Equal(t, false, IsGoTypeReference("doc.json"))
 	assert.Equal(t, false, IsGoTypeReference("../doc.json"))
-	assert.Equal(t, true, IsGoTypeReference("http://deepmap.com/doc.json#/components/parameters/foo_bar"))
-	assert.Equal(t, false, IsGoTypeReference("http://deepmap.com/doc.json"))
+	assert.Equal(t, true, IsGoTypeReference("http://chris-watson.com/doc.json#/components/parameters/foo_bar"))
+	assert.Equal(t, false, IsGoTypeReference("http://chris-watson.com/doc.json"))
 }
 
 func TestSwaggerUriToEchoUri(t *testing.T) {
