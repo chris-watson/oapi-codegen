@@ -17,7 +17,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/deepmap/oapi-codegen/pkg/runtime"
+	"github.com/chris-watson/oapi-codegen/pkg/runtime"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -1373,9 +1373,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/params_with_add_props", wrapper.ParamsWithAddProps)
 	router.POST(baseURL+"/params_with_add_props", wrapper.BodyWithAddProps)
 
-}
-
-// Base64 encoded, gzipped, json marshaled Swagger object
+} // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
 	"H4sIAAAAAAAC/9RXTW/jNhD9KwTboxLHzvaim4tu0RRoG+wG6GFjBLQ4ipjKQy05sldY6L8XQ8nflNdx",

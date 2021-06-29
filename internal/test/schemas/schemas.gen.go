@@ -87,8 +87,8 @@ type HttpRequestDoer interface {
 // Client which conforms to the OpenAPI3 specification for this service.
 type Client struct {
 	// The endpoint of the server conforming to this interface, with scheme,
-	// https://api.chris-watson.com for example. This can contain a path relative
-	// to the server, such as https://api.chris-watson.com/dev-test, and all the
+	// https://api.deepmap.com for example. This can contain a path relative
+	// to the server, such as https://api.deepmap.com/dev-test, and all the
 	// paths in the swagger spec will be appended to the server.
 	Server string
 
@@ -1196,9 +1196,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/issues/41/:1param", wrapper.Issue41)
 	router.GET(baseURL+"/issues/9", wrapper.Issue9)
 
-}
-
-// Base64 encoded, gzipped, json marshaled Swagger object
+} // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
 	"H4sIAAAAAAAC/7RW32/bNhD+Vw5cgb3Ylu22WOO3ruiGDFgbNAH6UOeBFs8WG+nIkqfEguH/fSApW3Yt",

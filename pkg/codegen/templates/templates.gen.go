@@ -436,8 +436,8 @@ type HttpRequestDoer interface {
 // Client which conforms to the OpenAPI3 specification for this service.
 type Client struct {
 	// The endpoint of the server conforming to this interface, with scheme,
-	// https://api.chris-watson.com for example. This can contain a path relative
-	// to the server, such as https://api.chris-watson.com/dev-test, and all the
+	// https://api.deepmap.com for example. This can contain a path relative
+	// to the server, such as https://api.deepmap.com/dev-test, and all the
 	// paths in the swagger spec will be appended to the server.
 	Server string
 
@@ -886,8 +886,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 {{end}}
 {{range .}}router.{{.Method}}(baseURL + "{{.Path | swaggerUriToEchoUri}}", wrapper.{{.OperationId}})
 {{end}}
-}
-`,
+}`,
 	"request-bodies.tmpl": `{{range .}}{{$opid := .OperationId}}
 {{range .Bodies}}
 {{with .TypeDef $opid}}
@@ -1293,3 +1292,4 @@ func Parse(t *template.Template) (*template.Template, error) {
 	}
 	return t, nil
 }
+

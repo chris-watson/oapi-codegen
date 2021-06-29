@@ -138,9 +138,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.DELETE(baseURL+"/pets/:id", wrapper.DeletePet)
 	router.GET(baseURL+"/pets/:id", wrapper.FindPetByID)
 
-}
-
-// Base64 encoded, gzipped, json marshaled Swagger object
+} // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
 	"H4sIAAAAAAAC/+RXW48budH9KwV+32OnNbEXedBTvB4vICBrT+LdvKznoYZdkmrBSw9Z1FgY6L8HRbZu",
