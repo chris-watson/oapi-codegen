@@ -45,7 +45,7 @@ var (
 	flagExcludeSchemas string
 	flagConfigFile     string
 	flagAliasTypes     bool
-	flagPrintVersion bool
+	flagPrintVersion   bool
 )
 
 type configuration struct {
@@ -112,6 +112,8 @@ func main() {
 			opts.GenerateClient = true
 		case "chi-server":
 			opts.GenerateChiServer = true
+		case "tt-server":
+			opts.GenerateTTServer = true
 		case "server":
 			opts.GenerateEchoServer = true
 		case "types":

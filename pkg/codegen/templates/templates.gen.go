@@ -905,6 +905,240 @@ type ServerInterface interface {
 {{end}}
 }
 `,
+	"tt-handler.tmpl": `// Handler creates http.Handler with routing matching OpenAPI spec.
+func Handler(si ServerInterface) http.Handler {
+  return HandlerWithOptions(si, TTServerOptions{})
+}
+
+type TTServerOptions struct {
+    BaseURL string
+    BaseRouter tt.Router
+    Middlewares []MiddlewareFunc
+}
+
+// HandlerFromMux creates http.Handler with routing matching OpenAPI spec based on the provided mux.
+func HandlerFromMux(si ServerInterface, r tt.Router) http.Handler {
+    return HandlerWithOptions(si, ChiServerOptions {
+        BaseRouter: r,
+    })
+}
+
+func HandlerFromMuxWithBaseURL(si ServerInterface, r tt.Router, baseURL string) http.Handler {
+    return HandlerWithOptions(si, ChiServerOptions {
+        BaseURL: baseURL,
+        BaseRouter: r,
+    })
+}
+
+// HandlerWithOptions creates http.Handler with additional options
+func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handler {
+r := options.BaseRouter
+
+if r == nil {
+r = tt.NewRouter()
+}
+{{if .}}wrapper := ServerInterfaceWrapper{
+Handler: si,
+HandlerMiddlewares: options.Middlewares,
+}
+{{end}}
+{{range .}}r.Group(func(r tt.Router) {
+r.{{.Method | lower | title }}(options.BaseURL+"{{.Path | swaggerUriToChiUri}}", wrapper.{{.OperationId}})
+})
+{{end}}
+return r
+}
+`,
+	"tt-interface.tmpl": `// ServerInterface represents all server handlers.
+type ServerInterface interface {
+{{range .}}{{.SummaryAsComment }}
+// ({{.Method}} {{.Path}})
+{{.OperationId}}(ctx context.Context, w http.ResponseWriter, r *http.Request{{genParamArgs .PathParams}}{{if .RequiresParamObject}}, params {{.OperationId}}Params{{end}})
+{{end}}
+}
+`,
+	"tt-middleware.tmpl": `// ServerInterfaceWrapper converts contexts to parameters.
+type ServerInterfaceWrapper struct {
+    Handler ServerInterface
+    HandlerMiddlewares []MiddlewareFunc
+}
+
+type MiddlewareFunc func(http.HandlerFunc) http.HandlerFunc
+
+{{range .}}{{$opid := .OperationId}}
+
+// {{$opid}} operation middleware
+func (siw *ServerInterfaceWrapper) {{$opid}}(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+  
+  {{if or .RequiresParamObject (gt (len .PathParams) 0) }}
+  var err error
+  {{end}}
+
+  {{range .PathParams}}// ------------- Path parameter "{{.ParamName}}" -------------
+  var {{$varName := .GoVariableName}}{{$varName}} {{.TypeDef}}
+
+  {{if .IsPassThrough}}
+  {{$varName}} = tt.URLParam(r, "{{.ParamName}}")
+  {{end}}
+  {{if .IsJson}}
+  err = json.Unmarshal([]byte(tt.URLParam(r, "{{.ParamName}}")), &{{$varName}})
+  if err != nil {
+    http.Error(w, "Error unmarshaling parameter '{{.ParamName}}' as JSON", http.StatusBadRequest)
+    return
+  }
+  {{end}}
+  {{if .IsStyled}}
+  err = runtime.BindStyledParameter("{{.Style}}",{{.Explode}}, "{{.ParamName}}", tt.URLParam(r, "{{.ParamName}}"), &{{$varName}})
+  if err != nil {
+    http.Error(w, fmt.Sprintf("Invalid format for parameter {{.ParamName}}: %s", err), http.StatusBadRequest)
+    return
+  }
+  {{end}}
+
+  {{end}}
+
+{{range .SecurityDefinitions}}
+  ctx = context.WithValue(ctx, {{.ProviderName | ucFirst}}Scopes, {{toStringArray .Scopes}})
+{{end}}
+
+  {{if .RequiresParamObject}}
+    // Parameter object where we will unmarshal all parameters from the context
+    var params {{.OperationId}}Params
+
+    {{range $paramIdx, $param := .QueryParams}}// ------------- {{if .Required}}Required{{else}}Optional{{end}} query parameter "{{.ParamName}}" -------------
+      if paramValue := r.URL.Query().Get("{{.ParamName}}"); paramValue != "" {
+
+      {{if .IsPassThrough}}
+        params.{{.GoName}} = {{if not .Required}}&{{end}}paramValue
+      {{end}}
+
+      {{if .IsJson}}
+        var value {{.TypeDef}}
+        err = json.Unmarshal([]byte(paramValue), &value)
+        if err != nil {
+          http.Error(w, "Error unmarshaling parameter '{{.ParamName}}' as JSON", http.StatusBadRequest)
+          return
+        }
+
+        params.{{.GoName}} = {{if not .Required}}&{{end}}value
+      {{end}}
+      }{{if .Required}} else {
+          http.Error(w, "Query argument {{.ParamName}} is required, but not found", http.StatusBadRequest)
+          return
+      }{{end}}
+      {{if .IsStyled}}
+      err = runtime.BindQueryParameter("{{.Style}}", {{.Explode}}, {{.Required}}, "{{.ParamName}}", r.URL.Query(), &params.{{.GoName}})
+      if err != nil {
+        http.Error(w, fmt.Sprintf("Invalid format for parameter {{.ParamName}}: %s", err), http.StatusBadRequest)
+        return
+      }
+      {{end}}
+  {{end}}
+
+    {{if .HeaderParams}}
+      headers := r.Header
+
+      {{range .HeaderParams}}// ------------- {{if .Required}}Required{{else}}Optional{{end}} header parameter "{{.ParamName}}" -------------
+        if valueList, found := headers[http.CanonicalHeaderKey("{{.ParamName}}")]; found {
+          var {{.GoName}} {{.TypeDef}}
+          n := len(valueList)
+          if n != 1 {
+            http.Error(w, fmt.Sprintf("Expected one value for {{.ParamName}}, got %d", n), http.StatusBadRequest)
+            return
+          }
+
+        {{if .IsPassThrough}}
+          params.{{.GoName}} = {{if not .Required}}&{{end}}valueList[0]
+        {{end}}
+
+        {{if .IsJson}}
+          err = json.Unmarshal([]byte(valueList[0]), &{{.GoName}})
+          if err != nil {
+            http.Error(w, "Error unmarshaling parameter '{{.ParamName}}' as JSON", http.StatusBadRequest)
+            return
+          }
+        {{end}}
+
+        {{if .IsStyled}}
+          err = runtime.BindStyledParameterWithLocation("{{.Style}}",{{.Explode}}, "{{.ParamName}}", runtime.ParamLocationHeader, valueList[0], &{{.GoName}})
+          if err != nil {
+            http.Error(w, fmt.Sprintf("Invalid format for parameter {{.ParamName}}: %s", err), http.StatusBadRequest)
+            return
+          }
+        {{end}}
+
+          params.{{.GoName}} = {{if not .Required}}&{{end}}{{.GoName}}
+
+        } {{if .Required}}else {
+            http.Error(w, fmt.Sprintf("Header parameter {{.ParamName}} is required, but not found: %s", err), http.StatusBadRequest)
+            return
+        }{{end}}
+
+      {{end}}
+    {{end}}
+
+    {{range .CookieParams}}
+      var cookie *http.Cookie
+
+      if cookie, err = r.Cookie("{{.ParamName}}"); err == nil {
+
+      {{- if .IsPassThrough}}
+        params.{{.GoName}} = {{if not .Required}}&{{end}}cookie.Value
+      {{end}}
+
+      {{- if .IsJson}}
+        var value {{.TypeDef}}
+        var decoded string
+        decoded, err := url.QueryUnescape(cookie.Value)
+        if err != nil {
+          http.Error(w, "Error unescaping cookie parameter '{{.ParamName}}'", http.StatusBadRequest)
+          return
+        }
+
+        err = json.Unmarshal([]byte(decoded), &value)
+        if err != nil {
+          http.Error(w, "Error unmarshaling parameter '{{.ParamName}}' as JSON", http.StatusBadRequest)
+          return
+        }
+
+        params.{{.GoName}} = {{if not .Required}}&{{end}}value
+      {{end}}
+
+      {{- if .IsStyled}}
+        var value {{.TypeDef}}
+        err = runtime.BindStyledParameter("simple",{{.Explode}}, "{{.ParamName}}", cookie.Value, &value)
+        if err != nil {
+          http.Error(w, "Invalid format for parameter {{.ParamName}}: %s", http.StatusBadRequest)
+          return
+        }
+        params.{{.GoName}} = {{if not .Required}}&{{end}}value
+      {{end}}
+
+      }
+
+      {{- if .Required}} else {
+        http.Error(w, "Query argument {{.ParamName}} is required, but not found", http.StatusBadRequest)
+        return
+      }
+      {{- end}}
+    {{end}}
+  {{end}}
+
+  var handler = func(w http.ResponseWriter, r *http.Request) {
+    siw.Handler.{{.OperationId}}(w, r{{genParamNames .PathParams}}{{if .RequiresParamObject}}, params{{end}})
+}
+
+  for _, middleware := range siw.HandlerMiddlewares {
+    handler = middleware(handler)
+  }
+
+  handler(w, r.WithContext(ctx))
+}
+{{end}}
+
+
+
+`,
 	"typedef.tmpl": `{{range .Types}}
 {{ with .Schema.Description }}{{ . }}{{ else }}// {{.TypeName}} defines model for {{.JsonName}}.{{ end }}
 type {{.TypeName}} {{if and (opts.AliasTypes) (.CanAlias)}}={{end}} {{.Schema.TypeDecl}}

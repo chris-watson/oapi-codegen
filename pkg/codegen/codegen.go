@@ -167,6 +167,14 @@ func Generate(swagger *openapi3.T, packageName string, opts Options) (string, er
 		}
 	}
 
+	var ttServerOut string
+	if opts.GenerateTTServer {
+		ttServerOut, err = GenerateTTServer(t, ops)
+		if err != nil {
+			return "", errors.Wrap(err, "error generating Go handlers for Paths")
+		}
+	}
+
 	var clientOut string
 	if opts.GenerateClient {
 		clientOut, err = GenerateClient(t, ops)
@@ -236,6 +244,13 @@ func Generate(swagger *openapi3.T, packageName string, opts Options) (string, er
 
 	if opts.GenerateChiServer {
 		_, err = w.WriteString(chiServerOut)
+		if err != nil {
+			return "", errors.Wrap(err, "error writing server path handlers")
+		}
+	}
+
+	if opts.GenerateTTServer {
+		_, err = w.WriteString(ttServerOut)
 		if err != nil {
 			return "", errors.Wrap(err, "error writing server path handlers")
 		}
