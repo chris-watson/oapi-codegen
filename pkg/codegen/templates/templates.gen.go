@@ -436,8 +436,8 @@ type HttpRequestDoer interface {
 // Client which conforms to the OpenAPI3 specification for this service.
 type Client struct {
 	// The endpoint of the server conforming to this interface, with scheme,
-	// https://api.deepmap.com for example. This can contain a path relative
-	// to the server, such as https://api.deepmap.com/dev-test, and all the
+	// https://api.chris-watson.com for example. This can contain a path relative
+	// to the server, such as https://api.chris-watson.com/dev-test, and all the
 	// paths in the swagger spec will be appended to the server.
 	Server string
 
@@ -748,8 +748,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/deepmap/oapi-codegen/pkg/runtime"
-	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
+	"github.com/chris-watson/oapi-codegen/pkg/runtime"
+	openapi_types "github.com/chris-watson/oapi-codegen/pkg/types"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
 	"github.com/labstack/echo/v4"
@@ -1293,4 +1293,3 @@ func Parse(t *template.Template) (*template.Template, error) {
 	}
 	return t, nil
 }
-
